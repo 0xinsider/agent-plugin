@@ -1,6 +1,6 @@
 ---
 name: polymarket-sharp-money
-description: Read directional sharp-money and smart-money flow on Polymarket sports and esports markets through the 0xinsider API or MCP server, including market intel, live snapshots, pre-game edge signals, and Insider Radar flags. Use when asked which side sharp money is on, where smart money is moving, what the flow says about a game, or to check anomaly flags on a market.
+description: Read directional sharp-money and smart-money flow on Polymarket sports and esports markets through the 0xinsider API or MCP server, including market intel, live snapshots, pre-game edge signals, and Insider Radar flags. Use when asked how graded-wallet flow is distributed across a market's outcomes, where high-grade wallets are concentrating, how to read a market's flow analytics, or to check review flags on a market.
 license: MIT
 metadata:
   publisher: 0xinsider
@@ -10,7 +10,8 @@ metadata:
 
 # Polymarket sharp money
 
-Directional flow across a market, rather than one trade or one wallet. Read
+Flow analytics across a market, rather than one trade or one wallet: how
+the activity of graded wallets is distributed across a market's outcomes. Read
 `0xinsider-api-access` first for credentials and hosts.
 
 ## Calls
@@ -23,9 +24,9 @@ Directional flow across a market, rather than one trade or one wallet. Read
 | Many markets | `POST /api/v1/markets/intel/batch` | `batch_get_market_intel` |
 | Live snapshot | `GET /api/v1/market/{condition_id}/snapshot` | `get_market_snapshot` |
 | OHLC candles | `GET /api/v1/market/{condition_id}/candles` | - |
-| Pre-game signals | `GET /api/v1/sports-edge-signals` | - |
+| Pre-event flow signals | `GET /api/v1/sports-edge-signals` | - |
 | Observation cohorts | `GET /api/v1/sports-edge-observations` | - |
-| Anomaly flags | `GET /api/v1/insider-radar` | `get_insider_radar` |
+| Review flags | `GET /api/v1/insider-radar` | `get_insider_radar` |
 
 Markets are keyed by `condition_id`. Resolve a name to one through
 `GET /api/v1/markets/search` before you call any of these.
@@ -41,8 +42,8 @@ the conclusion, so it is worth stating plainly:
 - `SELL YES` **subtracts** exposure
 
 A zero-flow YES tie-break is not conviction. When flow nets to zero, the YES
-label is a deterministic tie-break, and reporting it as "sharp money likes YES"
-is a fabrication.
+label is a deterministic tie-break, and reporting it as a lean toward YES is a
+fabrication.
 
 ## Insider Radar
 
@@ -50,14 +51,14 @@ Insider Radar reads stored scored trades and marks activity for review. Its
 live flag floor is 60, and the compatible watch filter stays empty until a
 watch policy exists.
 
-A flag does not establish intent, insider knowledge, or a future outcome. It is
-a pointer to something worth a human look. The 0-100 suspicion score is a
+A flag does not establish intent, non-public knowledge, or a future outcome.
+It is a pointer to something worth a human look. The 0-100 review score is a
 different quantity from the 0.0-1.0 feed significance score; do not convert or
 compare them.
 
-## Sports-edge signals
+## Pre-event flow signals
 
-`GET /api/v1/sports-edge-signals` returns ranked pre-game signals.
+`GET /api/v1/sports-edge-signals` returns ranked pre-event flow signals.
 `GET /api/v1/sports-edge-observations` returns observation-only cohorts, which
 are exactly what the name says: observed, not activated. Category-skill
 evidence declares `partial_whale_threshold_fills` or `graded_wallet_fills`
@@ -66,7 +67,8 @@ activation. Read the declared coverage before you quote a cohort.
 
 ## Reporting flow without overclaiming
 
-Flow is what graded wallets did. It is not a forecast and not advice. Report
+Flow is what graded wallets did. It is analytics, not a forecast and not
+advice. Report
 the direction, the size, the window it covers, and the coverage basis. If the
 basis is partial, say so in the same sentence as the number.
 

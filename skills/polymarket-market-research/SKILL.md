@@ -1,6 +1,6 @@
 ---
 name: polymarket-market-research
-description: Search Polymarket sports and esports markets and 0xinsider's published research, explore markets by category, and pull daily, weekly or monthly report snapshots through the API or MCP server. Use when asked to find a Polymarket market, search 0xinsider research or learn guides, browse markets by sport, get the Pick of the Day and its track record, or produce a periodic market report.
+description: Search Polymarket sports and esports markets and 0xinsider's published research, explore markets by category, and pull daily, weekly or monthly report snapshots through the API or MCP server. Use when asked to find a Polymarket market, search 0xinsider research or learn guides, browse markets by sport, read the published daily selection and its settled record, or produce a periodic market report.
 license: MIT
 metadata:
   publisher: 0xinsider
@@ -47,12 +47,12 @@ you describe a finding as current.
 These are snapshots. A snapshot is the state at its stated timestamp, not a
 live read. Quote the timestamp whenever you quote the numbers.
 
-## Pick of the Day
+## Daily selection
 
-`GET /api/v1/pick-of-the-day` returns today's pick.
-`GET /api/v1/pick-of-the-day/archive` returns the track record, including the
-picks that lost. Quote the archive when you quote the pick; a daily pick shown
-without its record is a selective claim.
+`GET /api/v1/pick-of-the-day` returns today's published daily selection.
+`GET /api/v1/pick-of-the-day/archive` returns its settled record, including
+the entries that settled against it. Quote the archive when you quote the
+selection; a daily selection shown without its record is a selective claim.
 
 ## Platform coverage
 

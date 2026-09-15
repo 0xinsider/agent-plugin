@@ -61,7 +61,7 @@ them wrong produces a confident, wrong number.
 - **`pnl.realized` is omitted when no native accounting snapshot matches.**
   Raw total P&L is never a substitute for it.
 - **Significance (0.0-1.0) ranks attention, not outcomes.** It is a separate
-  quantity from Insider Radar's 0-100 suspicion score. Neither is a
+  quantity from Insider Radar's 0-100 review score. Neither is a
   probability, a forecast, or advice.
 - **A zero-flow YES tie-break is not conviction.** `BUY YES` and `SELL NO` add
   exposure; `BUY NO` and `SELL YES` subtract it.

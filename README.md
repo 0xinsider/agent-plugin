@@ -26,10 +26,10 @@ npx skills use 0xinsider/agent-plugin@0xinsider-api-access
 | Skill | Covers |
 | --- | --- |
 | [`0xinsider-api-access`](skills/0xinsider-api-access/SKILL.md) | Credentials, sandbox vs live hosts, MCP transports, rate limits, typed errors |
-| [`polymarket-whale-trades`](skills/polymarket-whale-trades/SKILL.md) | Live large-trade feed, history replay, counterparties, significance score |
+| [`polymarket-whale-trades`](skills/polymarket-whale-trades/SKILL.md) | Large-trade feed, history replay, counterparties, significance score |
 | [`polymarket-wallet-grades`](skills/polymarket-wallet-grades/SKILL.md) | Trader grades, settled P&L and its trust metadata, leaderboards, position timelines |
 | [`polymarket-sharp-money`](skills/polymarket-sharp-money/SKILL.md) | Directional flow, market intel, sports-edge signals, Insider Radar flags |
-| [`polymarket-market-research`](skills/polymarket-market-research/SKILL.md) | Market search and explore, published research, report snapshots, Pick of the Day |
+| [`polymarket-market-research`](skills/polymarket-market-research/SKILL.md) | Market search and explore, published research, report snapshots, the daily selection |
 
 [`AGENTS.md`](AGENTS.md) holds the rules for AI coding agents writing
 integration code against the API. `.cursorrules` mirrors it.

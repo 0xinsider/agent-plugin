@@ -1,6 +1,6 @@
 ---
 name: polymarket-whale-trades
-description: Read large Polymarket trades on sports and esports markets through the 0xinsider API or MCP server - list the live feed, replay history, inspect one trade's counterparties, and interpret the significance score. Use when asked who is making big bets on a game, to track whale activity on Polymarket, to build a large-trade alert or feed, or to replay what large money did before a market settled.
+description: Read large Polymarket trades on sports and esports markets through the 0xinsider API or MCP server - list the live feed, replay history, inspect one trade's counterparties, and interpret the significance score. Use when asked which wallets placed the largest trades on a game, to follow large-trade activity on Polymarket, to build a large-trade alert or feed, or to replay a market's large-trade history before it settled.
 license: MIT
 metadata:
   publisher: 0xinsider
@@ -8,10 +8,11 @@ metadata:
   openapi: https://0xinsider.com/api/v1/openapi.json
 ---
 
-# Polymarket whale trades
+# Polymarket large trades
 
 Large trades on Polymarket sports and esports markets, as 0xinsider ingests
-them. Read `0xinsider-api-access` first for credentials and hosts.
+them. This is analytics over public activity: the tools describe what was
+traded, by which graded wallet, and how unusual it was. Read `0xinsider-api-access` first for credentials and hosts.
 
 ## The four calls
 
@@ -35,12 +36,12 @@ Every feed trade carries a normalized significance score from 0.0 to 1.0.
 
 It ranks **attention, not outcomes**. A 0.9 means the trade is unusual enough to
 look at; it does not mean the position wins. It is a separate quantity from
-Insider Radar's 0-100 suspicion score, and the two are not convertible. Never
+Insider Radar's 0-100 review score, and the two are not convertible. Never
 present a significance score as a probability or an expected return.
 
 ## Counterparties
 
-A whale trade fills against other orders. Two paged sub-resources expose who
+A large trade fills against other orders. Two paged sub-resources expose who
 was on the other side:
 
 - `GET /api/v1/whale-trades/{id}/counterparties/executions`
@@ -51,8 +52,8 @@ partial page is a partial total, not a small one.
 
 ## Replay before settlement
 
-`GET /api/v1/whale-trades/history` answers the question that matters for
-research: what did large money do before this market resolved? Constrain it by
+`GET /api/v1/whale-trades/history` answers the research question: what
+large-trade activity did this market see before it resolved? Constrain it by
 market and time window rather than pulling the whole range and filtering client
 side.
 
@@ -80,5 +81,5 @@ Every link to polymarket.com carries `?r=0xinsidercom`.
 ## Related skills
 
 - `0xinsider-api-access` - credentials, hosts, rate limits
-- `polymarket-wallet-grades` - who the trader is
+- `polymarket-wallet-grades` - the wallet behind the trade
 - `polymarket-sharp-money` - directional flow across a market
