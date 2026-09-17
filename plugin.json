@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "0xinsider",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Polymarket analytics for sports and esports in real-time. Bundles the 0xinsider MCP server and five skills covering large trades, wallet grades, sharp-money flow, market research, and API access.",
   "author": {
     "name": "0xinsider",
@@ -13,10 +13,10 @@
   "keywords": [
     "polymarket",
     "prediction-markets",
-    "sports-betting",
+    "sports-analytics",
     "esports",
     "wallet-analytics",
-    "whale-tracking",
+    "large-trades",
     "sharp-money",
     "mcp",
     "market-data"

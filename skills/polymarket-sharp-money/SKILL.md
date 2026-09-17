@@ -33,8 +33,8 @@ Markets are keyed by `condition_id`. Resolve a name to one through
 
 ## The sign convention
 
-Market intel reports outcome-aware whale flow. Getting the sign wrong inverts
-the conclusion, so it is worth stating plainly:
+Market intel reports outcome-aware large-trade flow. Getting the sign wrong
+inverts the conclusion, so it is worth stating plainly:
 
 - `BUY YES` **adds** exposure
 - `SELL NO` **adds** exposure
