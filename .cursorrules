@@ -37,7 +37,9 @@ There is no build step and no runtime here. Everything is Markdown and JSON.
 - **Generate types from the OpenAPI spec.** Do not hand-write response
   interfaces; the spec is the source of truth and it moves.
 - **Prefer the official SDKs** over a hand-rolled HTTP client: `0xinsider` on
-  PyPI (import `oxinsider`), `github.com/0xinsider/0xinsider-go`, and
+  PyPI (import `oxinsider`), `github.com/0xinsider/0xinsider-go`, the Rust crate
+  `oxinsider` (github.com/0xinsider/0xinsider-rust), `@0xinsider/sdk` for
+  Node.js and TypeScript (github.com/0xinsider/0xinsider-node), and
   `@0xinsider/mcp` on npm for the CLI and MCP server.
 - **Batch instead of looping.** Batch reads accept 25 items. A loop over 25
   addresses burns a quarter of the per-minute budget to fetch what one call
@@ -95,6 +97,8 @@ them wrong produces a confident, wrong number.
 | Sandbox | https://0xinsider.com/sandbox/api/v1/leaderboard |
 | Python SDK | https://github.com/0xinsider/0xinsider-python |
 | Go SDK | https://github.com/0xinsider/0xinsider-go |
+| Node.js and TypeScript SDK | https://github.com/0xinsider/0xinsider-node |
+| Rust SDK | https://github.com/0xinsider/0xinsider-rust |
 | CLI and MCP package | https://www.npmjs.com/package/@0xinsider/mcp |
 | Homebrew tap | https://github.com/0xinsider/homebrew-tap |
 | Research data | https://github.com/0xinsider/research |
