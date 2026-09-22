@@ -83,6 +83,8 @@ curl -s -X POST https://api.0xinsider.com/api/v1/agents/register \
 - Machine-readable index: <https://0xinsider.com/llms.txt>
 - Python SDK: <https://github.com/0xinsider/0xinsider-python>
 - Go SDK: <https://github.com/0xinsider/0xinsider-go>
+- Node.js and TypeScript SDK: <https://github.com/0xinsider/0xinsider-node>
+- Rust SDK: <https://github.com/0xinsider/0xinsider-rust>
 - CLI and MCP package: <https://www.npmjs.com/package/@0xinsider/mcp>
 
 ## License
