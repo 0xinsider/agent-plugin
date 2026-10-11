@@ -1,6 +1,6 @@
 ---
 name: polymarket-sharp-money
-description: Read directional sharp-money and smart-money flow on Polymarket sports and esports markets through the 0xinsider API or MCP server, including market intel, live snapshots, pre-game edge signals, and Insider Radar flags. Use when asked how graded-wallet flow is distributed across a market's outcomes, where high-grade wallets are concentrating, how to read a market's flow analytics, or to check review flags on a market.
+description: Read directional sharp-money and smart-money flow on Polymarket sports and esports markets through the 0xinsider API or MCP server, including market intel, live snapshots, the Max-only Edge Hunter board, and Insider Radar flags. Use when asked how graded-wallet flow is distributed across a market's outcomes, where high-grade wallets are concentrating, how to read a market's flow analytics, or to check review flags on a market.
 license: MIT
 metadata:
   publisher: 0xinsider
@@ -24,12 +24,12 @@ the activity of graded wallets is distributed across a market's outcomes. Read
 | Many markets | `POST /api/v1/markets/intel/batch` | `batch_get_market_intel` |
 | Live snapshot | `GET /api/v1/market/{condition_id}/snapshot` | `get_market_snapshot` |
 | OHLC candles | `GET /api/v1/market/{condition_id}/candles` | - |
-| Pre-event flow signals | `GET /api/v1/sports-edge-signals` | - |
-| Observation cohorts | `GET /api/v1/sports-edge-observations` | - |
+| Edge Hunter board (Max) | `GET /api/v1/edge-hunter` | `get_edge_hunter` |
 | Review flags | `GET /api/v1/insider-radar` | `get_insider_radar` |
 
-Markets are keyed by `condition_id`. Resolve a name to one through
-`GET /api/v1/markets/search` before you call any of these.
+Market-specific calls use `condition_id`. Resolve a name through
+`GET /api/v1/markets/search` before calling them. Edge Hunter returns the
+ranked all-sports board without a market identifier.
 
 ## The sign convention
 
@@ -56,14 +56,35 @@ It is a pointer to something worth a human look. The 0-100 review score is a
 different quantity from the 0.0-1.0 feed significance score; do not convert or
 compare them.
 
-## Pre-event flow signals
+## Edge Hunter
 
-`GET /api/v1/sports-edge-signals` returns ranked pre-event flow signals.
-`GET /api/v1/sports-edge-observations` returns observation-only cohorts, which
-are exactly what the name says: observed, not activated. Category-skill
-evidence declares `partial_whale_threshold_fills` or `graded_wallet_fills`
-coverage per serving model, and candidate models collect separately until
-activation. Read the declared coverage before you quote a cohort.
+Use `GET /api/v1/edge-hunter` or MCP `get_edge_hunter` for the same ranked
+board shown at https://0xinsider.com/sports/edge. Live access requires Max;
+a valid Pro credential receives `403 forbidden` with
+`error.reason: max_plan_required`.
+
+`horizon_hours` is the only parameter: it defaults to 48 and clamps to 1–48.
+The board uses a B-grade floor across sports and returns at most 30 ranked
+rows. `total` counts the requested window before that cap; there is no cursor,
+category filter or cohort selector.
+
+The REST envelope is `{object: "edge_hunter", data: <board>, meta: <meta>}`.
+Read `data.rows`; the authorized board has `viewer: "max"`, and each row has
+`state: "full"`, `free: false` and its signal. The MCP tool projects the board
+payload with the response metadata beside it.
+
+Read `as_of`, `cached_age_seconds`, `ranking_source` and `directional_source`
+from the board to describe the snapshot's age and provenance. Outcome
+`current_price` quotes have their own basis and timestamps; a missing quote
+is null and the snapshot clock is not the quote clock. The contract omits
+token IDs and category-skill evidence. Responses use
+`Cache-Control: private, no-store`; there is no ETag/304 path.
+
+The earlier sports feeds are retired and return `410 endpoint_retired`.
+Migrate clients to the board envelope and remove their old filters, cursors
+and observation-cohort assumptions. The former observation cohorts have no
+replacement in Edge Hunter. Follow the current typed contract at
+https://docs.0xinsider.com/api-reference/endpoint/get-edge-hunter.
 
 ## Reporting flow without overclaiming
 

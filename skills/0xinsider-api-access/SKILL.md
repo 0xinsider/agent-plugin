@@ -20,7 +20,7 @@ you will actually hit.
 | Host | Credential | Data |
 | --- | --- | --- |
 | `https://0xinsider.com/sandbox` | none | Documented examples and deterministic schema samples. Nothing is stored. |
-| `https://api.0xinsider.com` | live key, active Pro subscription | Live Polymarket data. |
+| `https://api.0xinsider.com` | live key, active Pro or Max subscription | Live Polymarket data. |
 
 Start in the sandbox. Every documented operation answers there with no
 credential, so you can shape a request and assert on the response schema before
@@ -54,7 +54,9 @@ The key is prefixed `oxi_sk_test_`. It is a sandbox credential: sending it to
 `api.0xinsider.com` returns `401 invalid_api_key` with `error.reason` set to
 `sandbox_api_key`. That is the expected response, not a bug.
 
-Live keys are prefixed `oxi_sk_live_` and require an active Pro subscription.
+Live keys are prefixed `oxi_sk_live_` and require an active Pro or Max subscription.
+Edge Hunter requires Max; Pro access receives `403 forbidden` with
+`error.reason: max_plan_required`.
 
 ## Authenticate
 
@@ -86,7 +88,7 @@ is missing. Read the header rather than guessing.
 - The MCP handshake: `initialize`, `ping`, `tools/list`
 
 Data, export, webhook, usage, and MCP `tools/call` operations require a
-credential and an active Pro subscription.
+credential and an active Pro or Max subscription. Edge Hunter requires Max.
 
 ## MCP
 
