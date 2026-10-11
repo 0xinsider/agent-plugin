@@ -117,6 +117,23 @@ npx -y 0xinsider init
 Install it permanently with `npm install --global 0xinsider` or
 `brew install 0xinsider/tap/oxinsider`.
 
+## Conditional Edge Hunter reads
+
+All Edge Hunter views require Max. `GET /api/v1/edge-hunter` defaults to the
+quoted board and has no ETag. Select `view=signals` or `view=observations` for
+full paginated records and semantic conditional GET. Store the advanced
+response's ETag and re-send `If-None-Match`; HTTP 304 has no JSON body. The
+TypeScript SDK's `edgeHunter.getConditional()` returns the full selected
+collection or `object: "not_modified", data: null`.
+
+Both advanced views use `Cache-Control: private, no-cache`: revalidate
+before reuse. They read warmed generations only; a missing/stale generation
+returns 503 `read_model_warming` with `Retry-After: 5` without computing
+holders or calling providers in the request, or fabricating a complete empty result. Parameters for another view return 400;
+refreshed snapshots expire cursors. Restart at page one after `cursor_expired`
+or when migrating from a retired sports URL. Read `polymarket-sharp-money`
+for view-specific queries, source clocks and evidence limits.
+
 ## Rate limits
 
 100 requests per minute per API-key user. Batch reads accept 25 items per call
