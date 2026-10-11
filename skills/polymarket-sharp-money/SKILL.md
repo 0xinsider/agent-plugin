@@ -1,6 +1,6 @@
 ---
 name: polymarket-sharp-money
-description: Read directional sharp-money and smart-money flow on Polymarket sports and esports markets through the 0xinsider API or MCP server, including market intel, live snapshots, the Max-only Edge Hunter board, full ranked signals and cohort observations, and Insider Radar flags. Use when asked how graded-wallet flow is distributed across a market's outcomes, where high-grade wallets are concentrating, how to read a market's flow analytics, or to check review flags on a market.
+description: Read directional sharp-money and smart-money flow on Polymarket sports and esports markets through the 0xinsider API or MCP server, including market intel, live snapshots, the configurable Max-only Edge Hunter board, full ranked signals and cohort observations, and Insider Radar flags. Use when asked how graded-wallet flow is distributed across a market's outcomes, where high-grade wallets are concentrating, how to read a market's flow analytics, or to check review flags on a market.
 license: MIT
 metadata:
   publisher: 0xinsider
@@ -68,16 +68,55 @@ with `error.reason: max_plan_required`. The catalog remains 45 tools.
 
 Omit `view` or use `view=board` to preserve the board shown at
 https://0xinsider.com/sports/edge. It accepts `horizon_hours` (default 48,
-clamp 1..48), uses a B-grade floor across all sports and esports, and returns
-at most 30 full ranked rows with `total` before that cap. Advanced category,
-cohort, limit, cursor and minimum-grade parameters are rejected for this view.
+clamp 1..48). Defaults are B grade floor, all sports/esports and at most 30
+full rows. Common selections, legacy `category`, `min_grade` S/A/B and
+`limit` (default 30, clamp 1..30) are configurable. `total` counts selected
+admitted rows before the cap. Cohort and cursor are rejected for this view.
 
 The REST body is `{object: "edge_hunter", data: <board>, meta: <meta>}`.
 Read `data.rows`, `viewer: "max"`, `state: "full"` and `free: false`.
-MCP keeps the board payload plus REST meta. `as_of`, `cached_age_seconds`,
+MCP keeps the board fields at the root of `structuredContent`, beside REST
+`meta` and optional `selection`. `as_of`, `cached_age_seconds`,
 `ranking_source` and `directional_source` date the snapshot and its evidence.
 Both outcome `current_price` quotes have independent basis and timestamps;
 a missing quote is null. The default board has no ETag/304 path.
+
+### Common selections and discovery
+
+Every view accepts the same selection axes:
+
+| Selection | Meaning |
+| --- | --- |
+| `kind` | `sports` or `esports`; omission covers both |
+| `sports` | Canonical buckets such as `Football`, `Soccer`, `Esports` or `Table Tennis`; case-insensitive |
+| `leagues` | Normalized machine/provider keys such as `nfl`, `epl`, `cs2` or `lol` |
+| `market_types` | Exact provider `sports_market_type` values |
+| `condition_ids` | Exact market IDs, raw or `mkt_`-prefixed |
+| `event_slugs` / `series_slugs` | Exact provider event/series identities |
+| `category` | Legacy bucket alias: `NFL` means Football; use `leagues=nfl` for NFL only |
+
+REST repeats bare query names or uses CSV within a value; SDK/MCP use arrays.
+Each list has 1..100 supplied values before deduplication. OR within a list,
+AND across axes. Known machine/provider league aliases normalize; unknown keys
+match exact lowercase identities. Market types and event/series slugs are
+trimmed case-sensitive provider strings. Unknown sports are rejected; unknown
+provider identities and market IDs can produce empty selected results.
+
+```ts
+const nfl = await client.edgeHunter.get({ kind: "sports", leagues: ["nfl"], limit: 10 });
+const soccer = await client.edgeHunter.signals({ sports: ["Soccer"], market_types: ["moneyline"] });
+const liveEsports = await client.edgeHunter.observations({ cohort: "in_play", kind: "esports", leagues: ["cs2", "lol"] });
+```
+
+Selected 200 responses echo requested normalized axes in top-level `selection`;
+SDK/MCP force strict query validation and refuse a missing echo. Empty lists are
+invalid. Blank category retains omission behavior. Each row adds required
+nullable `market_context` with required nullable `league`, `series_slug`,
+`market_type` and `metadata_updated_at`. These frozen facts are authoritative
+selector values. The timestamp is the local canonical metadata writer clock,
+not provider observation time. Missing selected facts exclude rows. Legacy
+unselected cache generations can carry context:null; selected reads without a
+ready sidecar return warming, never a silently widened result.
 
 ### Full ranked signals
 
@@ -110,7 +149,7 @@ partial and unknown values must remain explicit.
 ### Cohort observations
 
 Select `view=observations` and require `cohort=wider_holder|in_play|emerging_pile`.
-Optional queries are `category`, `limit` (default 20, clamp 1..100) and `cursor`;
+It accepts the common selections, `category`, `limit` (default 20, clamp 1..100) and `cursor`;
 `horizon_hours` and `min_grade` are rejected. The pre-game universe is 48 hours;
 in-play kickoff lookback is 12 hours.
 
@@ -130,7 +169,8 @@ wider-holder projection with sharp_pct in [0.75,0.85), complete holder scans
 and future kickoff at a pinned cutoff; it is neither a separate population
 nor arrival history.
 
-Read the accountable `funnel.sports` for all 14 sports: board input and
+Funnel accounting describes the source generation/category, not a selected
+league/type/market input census. Read `funnel.sports` for all 14 sports: board input and
 live/upcoming availability, upcoming status/unavailable scopes, diagnostic
 input, the closed 25-value terminal map, terminal_total and reconciled.
 Every input has one terminal and input equals terminal_total. Snapshot-wide
@@ -139,7 +179,7 @@ intentional bounded capacity_limited alone does not imply degradation.
 
 ### Typed clients, conditional reads and migration
 
-SDK 0.21.0 literal view calls narrow to the corresponding full envelope:
+SDK 0.22.0 literal view calls narrow to the corresponding full envelope:
 
 ```ts
 const board = await client.edgeHunter.get();
@@ -154,12 +194,13 @@ const conditional = await client.edgeHunter.getConditional(
 Shared `client.list()`, `paginate()`, `paginatePages()` and `collect()` also
 accept `getEdgeHunter` with an explicit advanced query. They preserve page
 and row types, continuation progress, resume information and cancellation.
-MCP 3.1.0 uses one `get_edge_hunter` selector and retains every advanced list,
-page, snapshot, funnel and REST-meta field. Its default board output is stable.
+MCP 3.2.0 uses one `get_edge_hunter` selector and retains every advanced list,
+page, snapshot, funnel and REST-meta field. Its default board behavior stays compatible with additive row context and
+optional normalized selection echo.
 
 Signals and observations support semantic ETag/If-None-Match/304; the default
-board does not. Both advanced views require private revalidation and read
-warmed generations only. Missing/stale readiness returns 503
+board does not. Both advanced views require private revalidation; all public
+views read warmed generations only. Missing/stale readiness returns 503
 `read_model_warming` with `Retry-After: 5`; requests do not compute holders
 or call providers. Old route
 cursors cannot be reused, changed filters/views cannot share a cursor, and a
