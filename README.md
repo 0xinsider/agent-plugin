@@ -15,6 +15,12 @@ without misreporting them.
 npx skills add 0xinsider/agent-plugin
 ```
 
+Refresh the changed instructions in an existing installation with:
+
+```bash
+npx skills@latest update 0xinsider-api-access polymarket-sharp-money
+```
+
 Or install one skill without adding the whole plugin:
 
 ```bash
@@ -50,7 +56,7 @@ integration code against the API. `.cursorrules` mirrors it.
 }
 ```
 
-The server exposes 33 tools across traders, markets, large trades, positions,
+The server exposes tools across traders, markets, large trades, positions,
 flow, research, reports, and webhooks. Its card is at
 [`/.well-known/mcp`](https://0xinsider.com/.well-known/mcp).
 
