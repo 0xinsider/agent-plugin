@@ -37,10 +37,13 @@ npx skills use 0xinsider/agent-plugin@0xinsider-api-access
 | [`polymarket-sharp-money`](skills/polymarket-sharp-money/SKILL.md) | Directional flow, market intel, Max-only Edge Hunter board/full signals/cohort observations, Insider Radar flags |
 | [`polymarket-market-research`](skills/polymarket-market-research/SKILL.md) | Market search and explore, published research, report snapshots |
 
-Plugin 1.1.0 documents all Edge Hunter views. The default board is unchanged;
-advanced signals and cohort observations retain full records, pagination,
-evidence and conditional reads. The coordinated TypeScript SDK is 0.21.0 and
-CLI/MCP runtime is 3.1.0. The four legacy URLs/tools remain retired.
+Plugin 1.2.0 documents configurable selections across every Edge Hunter view:
+sports/esports, canonical sports, exact leagues, market types, markets, events
+and series. Board defaults remain compatible; rows add frozen `market_context`
+for authoritative selector discovery, and selected responses echo normalized
+`selection`. Advanced records retain pagination, evidence and conditional reads.
+The coordinated TypeScript SDK is 0.22.0 and CLI/MCP runtime is 3.2.0.
+The four legacy URLs/tools remain retired.
 
 [`AGENTS.md`](AGENTS.md) holds the rules for AI coding agents writing
 integration code against the API. `.cursorrules` mirrors it.
@@ -68,7 +71,7 @@ flow, research, reports, and webhooks. Its card is at
 A local stdio path ships in the CLI:
 
 ```bash
-npx -y 0xinsider init
+npx -y @0xinsider/mcp@3.2.0 init
 ```
 
 ## Try it with no account

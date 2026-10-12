@@ -37,8 +37,9 @@ operation documents. Use it to exercise your retry path:
 curl -si 'https://0xinsider.com/sandbox/api/v1/leaderboard?sandbox_status=429'
 ```
 
-The sandbox does not validate request bodies or parameters, does not simulate
-streams or file downloads, and stores nothing.
+The sandbox validates documented request bodies and parameters, applies supported
+filters to fictional deterministic data, and stores nothing. It does not simulate
+streams or file downloads.
 
 ## Get a credential with no account
 
@@ -111,7 +112,7 @@ card, including transport and tool metadata, is at
 A local stdio path ships in the CLI:
 
 ```bash
-npx -y 0xinsider init
+npx -y @0xinsider/mcp@3.2.0 init
 ```
 
 Install it permanently with `npm install --global 0xinsider` or
@@ -127,12 +128,35 @@ TypeScript SDK's `edgeHunter.getConditional()` returns the full selected
 collection or `object: "not_modified", data: null`.
 
 Both advanced views use `Cache-Control: private, no-cache`: revalidate
-before reuse. They read warmed generations only; a missing/stale generation
+before reuse. All public views read warmed generations only; a missing/stale generation
 returns 503 `read_model_warming` with `Retry-After: 5` without computing
 holders or calling providers in the request, or fabricating a complete empty result. Parameters for another view return 400;
 refreshed snapshots expire cursors. Restart at page one after `cursor_expired`
 or when migrating from a retired sports URL. Read `polymarket-sharp-money`
 for view-specific queries, source clocks and evidence limits.
+
+## Configurable Edge Hunter selections
+
+Every view accepts `kind=sports|esports` (omit for both), six repeated-string
+lists `sports`, `leagues`, `market_types`, `condition_ids`, `event_slugs` and
+`series_slugs`, plus legacy `category`. Repeat bare query names or use CSV
+inside a value; bracket names are invalid. Lists contain 1..100 supplied values
+before normalization/deduplication. OR within an axis, AND across axes.
+
+Send `X-Query-Validation: strict` on selected REST reads and require top-level
+`selection` on a selected 200 response. This prevents an older instance from
+silently ignoring new selectors. SDK 0.22.0 and MCP 3.2.0 enforce these rules;
+empty SDK arrays fail before HTTP. Blank category remains omission behavior.
+Advanced cursors and ETags bind the normalized selection; changing it starts
+a fresh cursor walk. Unknown provider keys may return an empty selected result.
+
+Each row adds required nullable `market_context`. Its four required nullable
+fields are `league`, `series_slug`, `market_type` and `metadata_updated_at`.
+Use returned identities for discovery rather than guessing from titles or slug
+prefixes. The clock is exactly local `market_canonical.updated_at`, not provider
+observation time. Unselected old cache generations may carry context:null;
+selected reads require a ready frozen metadata sidecar and return 503 warming
+when absent. Missing selected facts exclude rows rather than widening results.
 
 ## Rate limits
 
