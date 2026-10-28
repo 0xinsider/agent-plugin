@@ -1,7 +1,7 @@
 # AGENTS.md - 0xinsider
 
 Instructions for AI coding agents building against 0xinsider. 0xinsider is
-Polymarket analytics for sports and esports in real-time: large trades, wallet
+Polymarket analytics & infrastructure for sports and esports markets: large trades, wallet
 grades, sharp-money flow, positions, and research.
 
 This file is the contract for agents writing integration code. Human-facing
