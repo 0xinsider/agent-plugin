@@ -3,7 +3,7 @@
 [![skills.sh](https://skills.sh/b/0xinsider/agent-plugin)](https://skills.sh/0xinsider/agent-plugin)
 
 The official [Agent Plugin](https://agent-plugins.org/specification) for
-**0xinsider** - Polymarket analytics for sports and esports in real-time.
+**0xinsider** - Polymarket analytics & infrastructure for sports and esports markets.
 
 It bundles the 0xinsider MCP server with five skills that teach an agent how to
 read large trades, wallet grades, sharp-money flow, and published research
@@ -42,7 +42,7 @@ sports/esports, canonical sports, exact leagues, market types, markets, events
 and series. Board defaults remain compatible; rows add frozen `market_context`
 for authoritative selector discovery, and selected responses echo normalized
 `selection`. Advanced records retain pagination, evidence and conditional reads.
-The coordinated TypeScript SDK is 0.22.0 and CLI/MCP runtime is 3.2.0.
+Selections need TypeScript SDK 0.22.0 or later and CLI/MCP runtime 3.2.0 or later.
 The four legacy URLs/tools remain retired.
 
 [`AGENTS.md`](AGENTS.md) holds the rules for AI coding agents writing
@@ -71,7 +71,7 @@ flow, research, reports, and webhooks. Its card is at
 A local stdio path ships in the CLI:
 
 ```bash
-npx -y @0xinsider/mcp@3.2.0 init
+npx -y @0xinsider/mcp@latest init
 ```
 
 ## Try it with no account

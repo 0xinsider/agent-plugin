@@ -11,7 +11,7 @@ metadata:
 
 # 0xinsider API access
 
-0xinsider is Polymarket analytics for sports and esports in real-time. This
+0xinsider is Polymarket analytics & infrastructure for sports and esports markets. This
 skill covers getting in: credentials, hosts, transports, and the failure modes
 you will actually hit.
 
@@ -112,7 +112,7 @@ card, including transport and tool metadata, is at
 A local stdio path ships in the CLI:
 
 ```bash
-npx -y @0xinsider/mcp@3.2.0 init
+npx -y @0xinsider/mcp@latest init
 ```
 
 Install it permanently with `npm install --global 0xinsider` or
