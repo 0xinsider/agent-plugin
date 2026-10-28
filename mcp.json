@@ -2,11 +2,8 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
   "mcpServers": {
     "0xinsider": {
-      "type": "http",
-      "url": "https://0xinsider.com/mcp",
-      "headers": {
-        "Authorization": "Bearer ${OXINSIDER_API_KEY}"
-      }
+      "type": "streamable-http",
+      "url": "https://api.0xinsider.com/api/v1/mcp"
     }
   }
 }

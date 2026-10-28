@@ -1,6 +1,6 @@
 ---
 name: polymarket-sharp-money
-description: Read directional sharp-money and smart-money flow on Polymarket sports and esports markets through the 0xinsider API or MCP server, including market intel, live snapshots, the configurable Max-only Edge Hunter board, full ranked signals and cohort observations, and Insider Radar flags. Use when asked how graded-wallet flow is distributed across a market's outcomes, where high-grade wallets are concentrating, how to read a market's flow analytics, or to check review flags on a market.
+description: Read directional sharp-money flow on Polymarket sports and esports markets through the 0xinsider API or MCP server, including market flow, graded holders, live snapshots, price candles, the configurable Max-only Edge Hunter board, full ranked signals and cohort observations, and suspicious-trade flags (formerly Insider Radar). Use when asked how graded-wallet flow is distributed across a market's outcomes, where high-grade wallets are concentrating, which graded wallets hold each side of a game, how to read a market's flow analytics (sometimes called smart-money flow), or to check suspicious-trade flags on a market.
 license: MIT
 metadata:
   publisher: 0xinsider
@@ -19,24 +19,38 @@ the activity of graded wallets is distributed across a market's outcomes. Read
 | Need | Call | MCP tool |
 | --- | --- | --- |
 | Ranked sharp flow | `GET /api/v1/markets/sharp-money-flows` | `get_sharp_money_flows` |
-| Ranked smart flow | `GET /api/v1/markets/smart-money-flows` | `get_smart_money_flows` |
-| One market | `GET /api/v1/market/{condition_id}/intel` | `get_market_intel` |
-| Many markets | `POST /api/v1/markets/intel/batch` | `batch_get_market_intel` |
+| One market | `GET /api/v1/market/{condition_id}/flow` | `get_market_flow` |
+| Many markets | `POST /api/v1/markets/flow/batch` | `batch_get_market_flow` |
+| Graded holders of a market | `GET /api/v1/market/{condition_id}/holders` | `get_market_holders` |
 | Live snapshot | `GET /api/v1/market/{condition_id}/snapshot` | `get_market_snapshot` |
-| OHLC candles | `GET /api/v1/market/{condition_id}/candles` | - |
+| OHLC candles | `GET /api/v1/market/{condition_id}/candles` | `get_market_candles` |
 | Edge Hunter quoted board (Max) | `GET /api/v1/edge-hunter` | `get_edge_hunter` (default view) |
 | Full ranked signals (Max) | `GET /api/v1/edge-hunter?view=signals` | `get_edge_hunter` (`view: "signals"`) |
 | Holder observations (Max) | `GET /api/v1/edge-hunter?view=observations&cohort=wider_holder` | `get_edge_hunter` (`view: "observations"`, `cohort`) |
-| Review flags | `GET /api/v1/insider-radar` | `get_insider_radar` |
+| Suspicious-trade flags | `GET /api/v1/suspicious-trades` | `get_suspicious_trades` |
+| One flag | `GET /api/v1/suspicious-trades/{id}` | `get_suspicious_trade` |
 
 Market-specific calls use `condition_id`. Resolve a name through
 `GET /api/v1/markets/search` before calling them. Edge Hunter returns the
 ranked all-sports board or advanced collection without a required market identifier.
 
+Deprecated aliases answer until 2027-02-01, then return `410 Gone` and lose
+their MCP tools: `/api/v1/market/{condition_id}/intel` (`get_market_intel`),
+`/api/v1/markets/intel/batch` (`batch_get_market_intel`),
+`/api/v1/markets/smart-money-flows` (`get_smart_money_flows`) and
+`/api/v1/insider-radar` (`get_insider_radar`, `get_insider_radar_flag`). Write
+new calls against the paths in the table.
+
+`holders` is the graded roster of one market: every S, A and B wallet with
+open shares on either outcome, from a complete provider holder scan, listed
+once on its net side. Read `scan.wallet_count` for the whole population; do
+not page `/api/v1/positions` to rebuild it.
+
 ## The sign convention
 
-Market intel reports outcome-aware large-trade flow. Getting the sign wrong
-inverts the conclusion, so it is worth stating plainly:
+Market flow reports outcome-aware large-trade flow; read its `sharp_money`
+object (`smart_money` is a deprecated alias with the same bytes). Getting the
+sign wrong inverts the conclusion, so it is worth stating plainly:
 
 - `BUY YES` **adds** exposure
 - `SELL NO` **adds** exposure
@@ -47,22 +61,25 @@ A zero-flow YES tie-break is not conviction. When flow nets to zero, the YES
 label is a deterministic tie-break, and reporting it as a lean toward YES is a
 fabrication.
 
-## Insider Radar
+## Suspicious-trade flags
 
-Insider Radar reads stored scored trades and marks activity for review. Its
-live flag floor is 60, and the compatible watch filter stays empty until a
-watch policy exists.
+Formerly Insider Radar. `GET /api/v1/suspicious-trades` lists stored trades
+whose recorded `suspicion_score` (0 to 100) met the live flag floor of 60,
+highest first. `min_suspicion` raises the floor. `mode=stable` pins a paginated
+walk to one published scoring generation and returns `cursor_expired` when
+scores or filters change; the default `mode=live` serves cached pages. The
+compatible `severity=watch` filter stays empty until a watch policy exists.
 
 A flag does not establish intent, non-public knowledge, or a future outcome.
-It is a pointer to something worth a human look. The 0-100 review score is a
-different quantity from the 0.0-1.0 feed significance score; do not convert or
-compare them.
+It is a pointer to something worth a human look. The 0-100 `suspicion_score`
+is a different quantity from a large trade's 0.0-1.0 `review_score`; do not
+convert or compare them.
 
 ## Edge Hunter
 
 Use `GET /api/v1/edge-hunter` or the single MCP `get_edge_hunter` tool.
 All views require Max; an active Pro credential receives `403 forbidden`
-with `error.reason: max_plan_required`. The catalog remains 45 tools.
+with `error.reason: max_plan_required`.
 
 ### Default quoted board
 
@@ -153,9 +170,18 @@ It accepts the common selections, `category`, `limit` (default 20, clamp 1..100)
 `horizon_hours` and `min_grade` are rejected. The pre-game universe is 48 hours;
 in-play kickoff lookback is 12 hours.
 
+With `cohort=wider_holder`, `admission=most_held_48h` opts into the most-held
+selection instead of the default one: per sport, up to 8 markets kicking off
+within 48 hours, most graded holders first. The response then echoes
+`admission`, and its funnel, coverage and degradation fields describe that
+selection. The parameter is rejected for every other view and cohort.
+
 The full body retains `object: "list"`, `view: "observations"`, rows in `data`,
 `has_more`, always-present nullable `next_cursor`, `snapshot_as_of`,
-`degraded`, `funnel` and `meta`. Rows carry verified non-null `token_id`,
+`degraded`, `degradation_reasons` (empty exactly when `degraded` is false),
+`coverage`, `funnel` and `meta`. Wider-holder reads add `departures`: markets
+whose card left the selection before kickoff, with the reason. Each row names
+the place that admitted it in `admitted_by`. Rows carry verified non-null `token_id`,
 identity/category/event/parent/kickoff, `observed_at`, cohort,
 `observation_only: true`, side/index, `backed_price`, all grade/backing/score
 aliases, provider read source, holder scan completeness/clock, directional
@@ -201,12 +227,15 @@ optional normalized selection echo.
 Signals and observations support semantic ETag/If-None-Match/304; the default
 board does not. Both advanced views require private revalidation; all public
 views read warmed generations only. Missing/stale readiness returns 503
-`read_model_warming` with `Retry-After: 5`; requests do not compute holders
+`read_model_warming` with `Retry-After: 5` (45 while a sport's cold pregame
+holder reads restart); requests do not compute holders
 or call providers. Old route
 cursors cannot be reused, changed filters/views cannot share a cursor, and a
 refreshed snapshot returns `cursor_expired`: restart at page one. All four
-legacy sports URLs/tools remain retired; migrate to the matching advanced
-view rather than restoring their calls.
+legacy sports URLs/tools remain retired: `/api/v1/sports-edge-signals`,
+`/api/v1/sports-edge-observations`, `/api/v1/sports/pre-game-sides` and
+`/api/v1/sports/pre-game-side-observations` return `410 endpoint_retired`.
+Migrate to the matching advanced view rather than restoring their calls.
 
 Follow the current typed contract at
 https://docs.0xinsider.com/api-reference/endpoint/get-edge-hunter.
@@ -215,8 +244,11 @@ https://docs.0xinsider.com/api-reference/endpoint/get-edge-hunter.
 
 Flow is what graded wallets did. It is analytics, not a forecast and not
 advice. Report
-the direction, the size, the window it covers, and the coverage basis. If the
-basis is partial, say so in the same sentence as the number.
+the direction, the size, the window it covers, and the coverage basis. Edge
+Hunter states its basis in `meta.ranking_source`, `meta.directional_source`
+and the category-skill coverage (`partial_whale_threshold_fills` or
+`graded_wallet_fills`). If the basis is partial or degraded, say so in the
+same sentence as the number.
 
 Keep full numeric precision until the final render.
 
