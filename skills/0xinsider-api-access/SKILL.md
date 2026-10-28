@@ -85,29 +85,66 @@ is missing. Read the header rather than guessing.
 
 - `GET /api/v1` - live route index and capability document
 - `GET /api/v1/health`
-- `GET /api/v1/platforms` - platform capability matrix
+- `GET /api/v1/coverage` - which data surfaces the API serves
+- `GET /api/v1/pick-of-the-day/ledger` - the public pick commitment ledger
 - The MCP handshake: `initialize`, `ping`, `tools/list`
 
-Data, export, webhook, usage, and MCP `tools/call` operations require a
-credential and an active Pro or Max subscription. Edge Hunter requires Max.
+Data, export, webhook, and MCP `tools/call` operations require a credential
+and an active Pro or Max subscription. Edge Hunter requires Max.
+`GET /api/v1/me` and `GET /api/v1/usage` keep answering a valid credential
+after paid access lapses, so use them to tell a lapsed plan from a bad key.
+
+## Deprecated paths
+
+These aliases still answer, with `Deprecation`, `Sunset` and a successor
+`Link` header, until 2027-02-01. From that date they return `410 Gone` with
+`error.code` `endpoint_retired`, and their MCP tools are removed. Write new
+calls against the canonical path:
+
+| Deprecated alias | Canonical path | Canonical MCP tool |
+| --- | --- | --- |
+| `/api/v1/whale-trades` and its sub-paths | `/api/v1/large-trades` | `get_large_trades`, `get_large_trade`, `get_large_trades_history` |
+| `/api/v1/insider-radar`, `/api/v1/insider-radar/{id}` | `/api/v1/suspicious-trades` | `get_suspicious_trades`, `get_suspicious_trade` |
+| `/api/v1/market/{condition_id}/intel` | `/api/v1/market/{condition_id}/flow` | `get_market_flow` |
+| `/api/v1/markets/intel/batch` | `/api/v1/markets/flow/batch` | `batch_get_market_flow` |
+| `/api/v1/markets/smart-money-flows` | `/api/v1/markets/sharp-money-flows` | `get_sharp_money_flows` |
+| `/api/v1/platforms` | `/api/v1/coverage` | `get_coverage` |
+
+The deprecated MCP aliases are `get_whale_trades`, `get_whale_trade`,
+`get_whale_trades_history`, `get_insider_radar`, `get_insider_radar_flag`,
+`get_market_intel`, `batch_get_market_intel`, `get_smart_money_flows` and
+`get_platforms`. The four legacy sports Edge Hunter routes already return
+`410 endpoint_retired`; see "Conditional Edge Hunter reads" below.
 
 ## MCP
 
-The remote server speaks Streamable HTTP at `https://0xinsider.com/mcp`. Its
-card, including transport and tool metadata, is at
-`https://0xinsider.com/.well-known/mcp`.
+The remote server speaks Streamable HTTP at
+`https://api.0xinsider.com/api/v1/mcp`. Every tool is read-only. Its card,
+including transport and tool metadata, is at
+`https://0xinsider.com/.well-known/mcp`. `initialize`, `ping` and `tools/list`
+need no credential, so `tools/list` is always the current catalog;
+`tools/call` takes `Authorization: Bearer` with an API key or an OAuth 2.1
+access token, and counts against the same rate limits as REST.
+
+The plugin's `mcp.json` carries no credential: the client signs in through
+OAuth on the first `tools/call`. To use an API key, configure the server in a
+client that expands `${VAR}` in headers, such as Claude Code's `.mcp.json`:
 
 ```json
 {
   "mcpServers": {
     "0xinsider": {
       "type": "http",
-      "url": "https://0xinsider.com/mcp",
+      "url": "https://api.0xinsider.com/api/v1/mcp",
       "headers": { "Authorization": "Bearer ${OXINSIDER_API_KEY}" }
     }
   }
 }
 ```
+
+`https://0xinsider.com/mcp` answers with the same tools, but the OAuth
+protected-resource metadata names `https://api.0xinsider.com/api/v1/mcp` as
+the resource, so an OAuth client should connect there.
 
 A local stdio path ships in the CLI:
 
@@ -115,8 +152,9 @@ A local stdio path ships in the CLI:
 npx -y @0xinsider/mcp@latest init
 ```
 
-Install it permanently with `npm install --global 0xinsider` or
-`brew install 0xinsider/tap/oxinsider`.
+Install it permanently with `npm install --global @0xinsider/mcp@latest`, then
+run `0xinsider init`, or with `brew install 0xinsider/tap/oxinsider`, which
+installs the version its formula pins.
 
 ## Conditional Edge Hunter reads
 
@@ -130,7 +168,11 @@ collection or `object: "not_modified", data: null`.
 Both advanced views use `Cache-Control: private, no-cache`: revalidate
 before reuse. All public views read warmed generations only; a missing/stale generation
 returns 503 `read_model_warming` with `Retry-After: 5` without computing
-holders or calling providers in the request, or fabricating a complete empty result. Parameters for another view return 400;
+holders or calling providers in the request, or fabricating a complete empty result.
+A pregame `wider_holder` or `emerging_pile` read for a sport whose holders
+have not been read in the last 30 minutes returns the same 503 with
+`Retry-After: 45` while those reads restart. Honor the header value rather than
+a fixed delay. Parameters for another view return 400;
 refreshed snapshots expire cursors. Restart at page one after `cursor_expired`
 or when migrating from a retired sports URL. Read `polymarket-sharp-money`
 for view-specific queries, source clocks and evidence limits.
@@ -160,12 +202,21 @@ when absent. Missing selected facts exclude rows rather than widening results.
 
 ## Rate limits
 
-100 requests per minute per API-key user. Batch reads accept 25 items per call
-and reserve 2500 item units per minute.
+| Plan | Requests per minute | Batch item units per minute | Included requests per UTC month |
+| --- | --- | --- | --- |
+| Pro | 100 | 2,500 | 500,000 |
+| Max | 200 | 5,000 | 2,000,000 |
+
+Limits are per API-key user. Batch reads accept 25 items per call and cost one
+item unit per item, so a batch is never the more expensive choice.
 
 Rate-limit headers are on every response. Read them instead of counting
-requests yourself, and honor `Retry-After` on a `429`. Check consumption
-without spending primary quota:
+requests yourself, and honor `Retry-After` on every retryable error: a `429`,
+a `503 read_model_warming`, a `503 rate_limit_unavailable`, and a
+`404 pick_not_released`. Each also carries `error.retry_at`, an RFC 3339 time,
+so you can schedule the retry instead of polling. Check consumption without
+spending primary quota (`/api/v1/usage` and `/api/v1/me` share a separate
+100-reads-per-minute bucket):
 
 ```bash
 curl -s https://api.0xinsider.com/api/v1/usage \
@@ -185,7 +236,10 @@ a timeout does not become a duplicate.
 
 An unavailable, partial, or stale provider field marks the edge of the
 evidence. Do not render it as a zero and do not describe it as a prediction.
-When `pnl.realized` is absent, raw total P&L is not a substitute for it.
+A wallet's P&L is `pnl.in_scope.realized_pnl`; when `pnl.in_scope` is absent
+the record is not computed yet, and no other figure substitutes for it. The
+wallet-wide `pnl.realized`, `pnl.total` and `pnl.net_total` were retired on
+2026-10-27 and are never sent. `polymarket-wallet-grades` has the detail.
 
 ## References
 
