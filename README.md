@@ -95,7 +95,7 @@ that expand `${VAR}` in headers, such as Claude Code's `.mcp.json`:
 }
 ```
 
-The server exposes read-only tools across traders, markets, games, large
+The server exposes tools across traders, markets, games, large
 trades, positions, flow, research, reports, and webhooks: 55 on 2026-10-28,
 nine of them deprecated aliases. `initialize`, `ping` and `tools/list` need no
 credential, so `tools/list` is always the current catalog; `tools/call` takes
