@@ -119,7 +119,7 @@ The deprecated MCP aliases are `get_whale_trades`, `get_whale_trade`,
 ## MCP
 
 The remote server speaks Streamable HTTP at
-`https://api.0xinsider.com/api/v1/mcp`. Every tool is read-only. Its card,
+`https://api.0xinsider.com/api/v1/mcp`. Every tool looks data up; none places a trade or changes your account. Its card,
 including transport and tool metadata, is at
 `https://0xinsider.com/.well-known/mcp`. `initialize`, `ping` and `tools/list`
 need no credential, so `tools/list` is always the current catalog;
